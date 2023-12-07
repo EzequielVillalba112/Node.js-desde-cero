@@ -1,5 +1,6 @@
 const express = require("express");
 const crypto = require("node:crypto");
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT ?? 3000;
@@ -8,6 +9,25 @@ const { validateMovie, validatePartialMovie } = require("./schema/movie");
 
 app.disable("x-powered-by");
 app.use(express.json());
+app.use(cors({
+    origin: (origin, callback) => {
+      const ACCEPTED_ORIGINS = [
+        'http://127.0.0.1:5500',
+        'http://localhost:1234',
+        'https://movies.com',
+      ]
+  
+      if (ACCEPTED_ORIGINS.includes(origin)) {
+        return callback(null, true)
+      }
+  
+      if (!origin) {
+        return callback(null, true)
+      }
+  
+      return callback(new Error('Not allowed by CORS'))
+    }
+  }))
 
 app.get("/movies", (req, res) => {
   const { genre, year } = req.query;
@@ -24,6 +44,19 @@ app.get("/movies", (req, res) => {
     return res.json(filterYear);
   }
   res.json(movies);
+});
+
+app.delete("/movies/:id", (req, res) => {
+  const { id } = req.params;
+  const movieIndex = movies.findIndex((movie) => movie.id === id);
+
+  if (movieIndex === -1) {
+    return res.status(404).json({ message: "Movie not found" });
+  }
+
+  movies.splice(movieIndex, 1);
+
+  return res.json({ message: "Movie deleted" });
 });
 
 app.post("/movies", (req, res) => {
@@ -44,6 +77,14 @@ app.post("/movies", (req, res) => {
 });
 
 app.get("/movies/:id", (req, res) => {
+  const { id } = req.params;
+  const movie = movies.find((movie) => movie.id === id);
+  if (movie) return res.json(movie);
+
+  res.status(404).json({ message: "Movie not found" });
+});
+
+app.patch("/movies/:id", (req, res) => {
   const result = validatePartialMovie(req.body);
 
   if (!result.success) {
@@ -52,8 +93,9 @@ app.get("/movies/:id", (req, res) => {
 
   const { id } = req.params;
   const movieIndex = movies.findIndex((movie) => movie.id === id);
+
   if (movieIndex === -1) {
-    res.status(404).json({ message: "Movie not found" });
+    return res.status(404).json({ message: "Movie not found" });
   }
 
   const updateMovie = {
@@ -64,13 +106,6 @@ app.get("/movies/:id", (req, res) => {
   movies[movieIndex] = updateMovie;
 
   return res.json(updateMovie);
-});
-
-app.patch("/movies/:id", (req, res) => {
-  const { id } = req.params;
-  const movie = movies.find((movie) => movie.id === id);
-
-  if (!movie) return res.status(404).json({ message: "Movie not found" });
 });
 
 app.listen(port, () => {
