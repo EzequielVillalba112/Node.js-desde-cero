@@ -1,18 +1,15 @@
-import express, { json } from "express";
-import { movieRouter } from "./routes/movies.js";
-import { corsMiddleware } from "./middlewares/cors.js";
+import express, { json } from 'express' // require -> commonJS
+import { moviesRouter } from './routes/movies.js'
+import { corsMiddleware } from './middlewares/cors.js'
 
-const app = express();
+const app = express()
+app.use(json())
+app.disable('x-powered-by')
 
+app.use('/movies', moviesRouter)
 
-app.disable("x-powered-by");
-app.use(json());
-app.use(corsMiddleware)
-
-app.use('/movies', movieRouter)
-
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 3000
 
 app.listen(PORT, () => {
-  console.log(`server listening on http://localhost:${PORT}`);
-});
+  console.log(`server listening on port http://localhost:${PORT}`)
+})

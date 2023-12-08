@@ -1,11 +1,12 @@
-import { Router } from "express";
-import { MovieController } from "../controllers/movies.js";
+import { Router } from 'express'
 
-export const movieRouter = Router();
+import { MovieController } from '../controllers/movies.js'
 
-movieRouter.get("/", MovieController.getAll);
-movieRouter.post("/", MovieController.create);
+export const moviesRouter = Router()
 
-movieRouter.get("/:id", MovieController.getId);
-movieRouter.delete("/:id", MovieController.delete);
-movieRouter.patch("/:id", MovieController.update);
+moviesRouter.get('/', MovieController.getAll)
+moviesRouter.post('/', MovieController.create)
+
+moviesRouter.get('/:id', MovieController.getById)
+moviesRouter.delete('/:id', MovieController.delete)
+moviesRouter.patch('/:id', MovieController.update)
